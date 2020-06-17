@@ -78,6 +78,12 @@
 			<artifactId>fastjson</artifactId>
 			<version>1.2.58</version>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+			<scope>compile</scope>
+		</dependency>
 
 
 	</dependencies>
