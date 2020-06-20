@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -92,9 +90,9 @@ public class AnnouncementDownloader {
                 + "(" + announcementsList.get(0).getSecCode() + ")"
                 + "总计：:" + announcementsList.size() + "份");
         for (Announcements announcements : announcementsList) {
-            downloadAnnouncementExecutorService.execute(() -> {
-                downloadAnnouncement(announcements);
-            });
+            downloadAnnouncementExecutorService.execute(() ->
+                    downloadAnnouncement(announcements)
+            );
         }
         downloadAnnouncementExecutorService.shutdown();
     }

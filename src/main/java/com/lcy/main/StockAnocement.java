@@ -2,8 +2,8 @@ package com.lcy.main;
 
 /**
  * 入口类
- * @author Tsilatipac
  *
+ * @author Tsilatipac
  */
 public class StockAnocement {
 
