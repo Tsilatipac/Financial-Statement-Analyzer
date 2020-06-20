@@ -21,18 +21,13 @@ import com.lcy.pojo.IncomeStatement;
 @SuppressWarnings("all")
 public class FunctionUnitTest {
 
-    long start;
+    private static List<String> codes = new ArrayList<String>();
+    private static long start;
 
-    @Test
-    public void testSearchOrgId(){
-        System.out.println(AnnouncementDownloader.searchOrgId("000651"));
-    }
-
-    @Test
-    public void testParse(){
-        List<String> codes = new ArrayList<String>();
+    private void addCodesToList() {
         codes.add("600690");
         codes.add("600519");
+        codes.add("000651");
         codes.add("603899");
         codes.add("002027");
         codes.add("000333");
@@ -40,6 +35,15 @@ public class FunctionUnitTest {
         codes.add("002027");
         codes.add("600887");
         codes.add("002304");
+    }
+
+    @Test
+    public void testSearchOrgId() {
+        System.out.println(AnnouncementDownloader.searchOrgId("000651"));
+    }
+
+    @Test
+    public void testParse() {
         for (String code : codes) {
             System.out.println(AnnouncementDownloader.queryFromWeb(code, "30", "1"));
         }
@@ -47,15 +51,6 @@ public class FunctionUnitTest {
 
     @Test
     public void testDownload() {
-        List<String> codes = new ArrayList<String>();
-        codes.add("600690");
-        codes.add("600519");
-        codes.add("000651");
-        codes.add("002027");
-        codes.add("000333");
-        codes.add("603288");
-        codes.add("002027");
-        codes.add("600887");
         AnnouncementDownloader.downloadByStockCode(codes);
     }
 
@@ -65,7 +60,7 @@ public class FunctionUnitTest {
 
             int count = 0;
 
-            MyPDFReader reader = new MyPDFReader("docs/贵州茅台/2015年年度报告.PDF");
+            MyPDFReader reader = new MyPDFReader("docs/洋河股份/2019年年度报告.PDF");
 
             System.out.println("资产负债表");
             BalanceSheet balanceSheet = reader.getBalanceSheetFromPdf();
@@ -107,8 +102,8 @@ public class FunctionUnitTest {
             analyer.setCashFlowStatement(cashFlowStatement);
             analyer.setBalanceSheet(balanceSheet);
             analyer.setIncomeStatement(incomeStatement);
-            System.out.println(analyer.getNetDebtFinancing());
-            System.out.println(analyer.getCashSelfSufficiencyRate());
+            System.out.println("NetDebtFinancing--->" + analyer.getNetDebtFinancing());
+            System.out.println("CashSelfSufficiencyRate--->" + analyer.getCashSelfSufficiencyRate());
 
             System.out.println("Fount " + count + " items");
         } catch (Exception e) {
@@ -142,6 +137,7 @@ public class FunctionUnitTest {
     @Before
     public void before() {
         start = System.currentTimeMillis();
+        addCodesToList();
     }
 
     @After

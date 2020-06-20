@@ -1,18 +1,21 @@
 package com.lcy.utils;
 
-import java.io.File;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.FileUtils;
-
 import com.alibaba.fastjson.JSONObject;
 import com.lcy.pojo.Announcements;
 import com.lcy.pojo.JsonRootBean;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 /**
  * 年报下载工具
@@ -23,18 +26,18 @@ public class AnnouncementDownloader {
 
     /**
      * 入口方法
-     * 遍历代码，使用多线程下载
+     * 遍历股票代码，使用多线程下载
      *
      * @param codes 存放要查询的股票代码的集合
      */
     public static void downloadByStockCode(List<String> codes) {
         for (String code : codes) {
-            new Thread(() -> parseAndDownload(code)).start();
+            parseAndDownload(code);
         }
     }
 
     /**
-     * 查询和分析股票的年报的Json，调用下载方法
+     * 查询和分析股票的年报的Json，返回年度报告列表
      *
      * @param stockCode 股票代码
      */
@@ -54,29 +57,46 @@ public class AnnouncementDownloader {
         // total 为总记录条数
         int total = jsonRootBean.getTotalAnnouncement();
 
-        // announcementsList 存放获取到的记录
+        // announcementsList 存放获取到的所有报告
         List<Announcements> announcementsList = jsonRootBean.getAnnouncements();
-        for (int i = 2; i <= total / pageSize + 1; i++) {
+        int times = total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
+        for (int i = 2; i <= times; i++) {
             result = queryFromWeb(stockCode, pageSize + "", i + "");
-//            try {
-                announcementsList.addAll(JSONObject.parseObject(result, JsonRootBean.class).getAnnouncements());
-//            } catch (Exception e) {
-//                System.out.println("stockCode---->"+stockCode);
-//                System.out.println("result---->"+result);
-//                e.printStackTrace();
-//            }
+            announcementsList.addAll(JSONObject.parseObject(result, JsonRootBean.class).getAnnouncements());
         }
 
-        System.out.println("已获取:" + total + "/" + announcementsList.size());
-
-        // 处理获取到的记录
-        Matcher matcher;
+        // targetAnnouncementsList 存放将要下载的年度报告
+        List<Announcements> targetAnnouncementsList = new LinkedList<>();
         for (Announcements announcements : announcementsList) {
-            matcher = pattern.matcher(announcements.getAnnouncementTitle());
-            if (matcher.find()) {
-                new Thread(() -> downloadAnnouncement(announcements)).start();
+            if (MyRegUtils.parseOne(reg, announcements.getAnnouncementTitle()) != null) {
+                targetAnnouncementsList.add(announcements);
             }
         }
+
+        if (targetAnnouncementsList.size() <= 0) {
+            throw new RuntimeException(stockCode + "未分析到年度报告");
+        }
+
+        downloadAnnouncementList(targetAnnouncementsList);
+    }
+
+    /**
+     * 使用多线程下载获取到到年度报告
+     *
+     * @param announcementsList 年度报告列表
+     */
+    private static void downloadAnnouncementList(List<Announcements> announcementsList) {
+        ExecutorService downloadAnnouncementExecutorService = Executors.newFixedThreadPool(20);
+
+        System.out.println(announcementsList.get(0).getSecName()
+                + "(" + announcementsList.get(0).getSecCode() + ")"
+                + "总计：:" + announcementsList.size() + "份");
+        for (Announcements announcements : announcementsList) {
+            downloadAnnouncementExecutorService.execute(() -> {
+                downloadAnnouncement(announcements);
+            });
+        }
+        downloadAnnouncementExecutorService.shutdown();
     }
 
     /**
@@ -84,7 +104,7 @@ public class AnnouncementDownloader {
      *
      * @param announcements 下载数据所在的对象
      */
-    public static void downloadAnnouncement(Announcements announcements) {
+    private static void downloadAnnouncement(Announcements announcements) {
         String adjunctUrl = announcements.getAdjunctUrl();
         String adjunctType = announcements.getAdjunctType();
         String announcementTitle = announcements.getAnnouncementTitle();
@@ -107,7 +127,7 @@ public class AnnouncementDownloader {
      * @param stockCode 股票代码
      * @param pageSize  每页大小
      * @param pageNum   页码
-     * @return
+     * @return 查询到到Json数据
      */
     public static String queryFromWeb(String stockCode, String pageSize, String pageNum) {
         String url = "http://www.cninfo.com.cn/new/hisAnnouncement/query";
@@ -132,9 +152,6 @@ public class AnnouncementDownloader {
         data.put("plate", plate);
         data.put("category", "category_ndbg_szsh;category_bndbg_szsh;category_yjdbg_szsh;category_sjdbg_szsh;");
         data.put("isHLtitle", "true");
-        //        for (String key : data.keySet()) {
-//            System.out.println(key + " ---> " + data.get(key));
-//        }
         return Ajax.getAccesstoken(url, data);
     }
 
@@ -142,7 +159,7 @@ public class AnnouncementDownloader {
      * 根据股票代码查询组织id
      *
      * @param stockCode 股票代码
-     * @return
+     * @return 查询到到组织id
      */
     public static String searchOrgId(String stockCode) {
         String url = "http://www.cninfo.com.cn/new/fulltextSearch/full";
