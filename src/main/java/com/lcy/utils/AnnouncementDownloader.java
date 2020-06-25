@@ -1,5 +1,6 @@
 package com.lcy.utils;
 
+import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.lcy.pojo.Announcements;
 import com.lcy.pojo.JsonRootBean;
@@ -120,7 +121,7 @@ public class AnnouncementDownloader {
     }
 
     /**
-     * 传入参数并调用Ajax.getAccesstoken方法，从网站获取Json
+     * 传入参数并调用HttpUtil.get()方法，从网站获取Json
      *
      * @param stockCode 股票代码
      * @param pageSize  每页大小
@@ -140,7 +141,7 @@ public class AnnouncementDownloader {
         } else {
             throw new RuntimeException("股票代码不支持");
         }
-        Map<String, String> data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         stockCode = stockCode + "," + searchOrgId(stockCode);
         data.put("stock", stockCode);
         data.put("tabName", "fulltext");
@@ -150,7 +151,7 @@ public class AnnouncementDownloader {
         data.put("plate", plate);
         data.put("category", "category_ndbg_szsh;category_bndbg_szsh;category_yjdbg_szsh;category_sjdbg_szsh;");
         data.put("isHLtitle", "true");
-        return Ajax.getAccesstoken(url, data);
+        return HttpUtil.get(url,data);
     }
 
     /**
@@ -161,13 +162,13 @@ public class AnnouncementDownloader {
      */
     public static String searchOrgId(String stockCode) {
         String url = "http://www.cninfo.com.cn/new/fulltextSearch/full";
-        HashMap<String, String> queryMap = new HashMap<>();
+        HashMap<String, Object> queryMap = new HashMap<>();
         queryMap.put("searchkey", stockCode);
         queryMap.put("isfulltext", "false");
         queryMap.put("sortName", "pubdate");
         queryMap.put("sortType", "desc");
         queryMap.put("pageNum", "1");
-        String result = Ajax.getMap(url, queryMap);
+        String result = HttpUtil.get(url,queryMap);
         String orgId = MyRegUtils.parseOne("\"secCode\":\"" + stockCode + "\".+?\"orgId\":\"[\\da-zA-z]+\"", result);
         assert orgId != null;
         String[] split = orgId.split(":");

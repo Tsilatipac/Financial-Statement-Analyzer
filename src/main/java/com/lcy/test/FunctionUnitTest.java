@@ -1,5 +1,6 @@
 package com.lcy.test;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,25 @@ public class FunctionUnitTest {
     }
 
     @Test
+    public void testGetCertainInfo() {
+        File dir = new File("docs/格力电器");
+        if (null != dir && dir.exists()) {
+            if (dir.isFile()) {
+                System.out.println(dir.getPath());
+                testPDFReader2(dir.getPath());
+            } else {
+                for (File f : dir.listFiles()) {
+                    if (MyRegUtils.parseOne("201[56789]年年度报告.PDF", f.getName()) != null) {
+                        System.out.println(f.getPath());
+                        testPDFReader2(f.getPath());
+                    }
+                }
+            }
+        }
+
+    }
+
+    @Test
     public void testDownload() {
         AnnouncementDownloader.downloadByStockCode(codes);
     }
@@ -60,7 +80,7 @@ public class FunctionUnitTest {
 
             int count = 0;
 
-            MyPDFReader reader = new MyPDFReader("docs/洋河股份/2019年年度报告.PDF");
+            MyPDFReader reader = new MyPDFReader("docs/万  科Ａ/2019年年度报告.PDF");
 
             System.out.println("资产负债表");
             BalanceSheet balanceSheet = reader.getBalanceSheetFromPdf();
@@ -102,10 +122,45 @@ public class FunctionUnitTest {
             analyer.setCashFlowStatement(cashFlowStatement);
             analyer.setBalanceSheet(balanceSheet);
             analyer.setIncomeStatement(incomeStatement);
-            System.out.println("NetDebtFinancing--->" + analyer.getNetDebtFinancing());
-            System.out.println("CashSelfSufficiencyRate--->" + analyer.getCashSelfSufficiencyRate());
+            System.out.println("netCashFlowsFromOperatingActivities--->" + cashFlowStatement.getNetCashFlowsFromOperatingActivities());
 
+            System.out.println("债务筹资净额--->" + analyer.getNetDebtFinancing());
+            System.out.println("现金自给率--->" + analyer.getCashSelfSufficiencyRate());
+            System.out.println("净合并额--->" + analyer.getNetConsolidation());
+            System.out.println("毛利率--->" + analyer.getGrossProfitRate());
+            System.out.println("总费用率--->" + analyer.getTotalOperatingExpensesRatio());
+            System.out.println("股东权益回报率--->" + analyer.getReturnOnEquity());
             System.out.println("Fount " + count + " items");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void testPDFReader2(String path) {
+        try {
+
+            int count = 0;
+
+            MyPDFReader reader = new MyPDFReader(path);
+
+            System.out.println("资产负债表");
+            BalanceSheet balanceSheet = reader.getBalanceSheetFromPdf();
+
+            System.out.println("利润表");
+            IncomeStatement incomeStatement = reader.getIncomeStatementFromPdf();
+
+            System.out.println("现金流量表");
+            CashFlowStatement cashFlowStatement = reader.getCashFlowStatementFromPdf();
+
+            System.out.println("经营活动净现金流量净额--->" + cashFlowStatement.getNetCashFlowsFromOperatingActivities());
+            System.out.println("净利润--->" + incomeStatement.getProfitOrOossAttributableToMinorityShareholders());
+            System.out.println("净资产--->" + balanceSheet.getTotalOwnersEquity());
+
+//            FinancialStatementAnalyer analyer = new FinancialStatementAnalyer();
+//            analyer.setCashFlowStatement(cashFlowStatement);
+//            analyer.setBalanceSheet(balanceSheet);
+//            analyer.setIncomeStatement(incomeStatement);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,7 +177,7 @@ public class FunctionUnitTest {
 
     @Test
     public void subtest1() {
-        MyPDFReader reader = new MyPDFReader("docs/贵州茅台/2019年年度报告.PDF");
+        MyPDFReader reader = new MyPDFReader("docs/万  科Ａ/2019年年度报告.PDF");
         System.out.println(reader.getCashFlowStatementText());
         MyRegUtils.parseOne("分配股利、利润或偿付利息支付的现金.+", reader.getCashFlowStatementText());
     }
