@@ -36,6 +36,7 @@ public class FunctionUnitTest {
         codes.add("002027");
         codes.add("600887");
         codes.add("002304");
+        codes.add("600066");
     }
 
     @Test
@@ -187,6 +188,12 @@ public class FunctionUnitTest {
         String a = "3,1,1.6";
         Double double1 = MyFormatUtils.parseDouble(a);
         System.out.println(double1);
+    }
+
+    @Test
+    public void testPDFParser(){
+        MyPDFReader reader = new MyPDFReader("docs/BILI Annual Report 2018.pdf");
+        reader.pdfToTextfile("docs/bilibili.txt");
     }
 
     @Before

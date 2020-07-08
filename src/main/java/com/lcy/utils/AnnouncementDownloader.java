@@ -121,7 +121,7 @@ public class AnnouncementDownloader {
     }
 
     /**
-     * 传入参数并调用HttpUtil.get()方法，从网站获取Json
+     * 传入参数并调用Ajax.getAccessToken()方法，从网站获取Json
      *
      * @param stockCode 股票代码
      * @param pageSize  每页大小
@@ -141,7 +141,7 @@ public class AnnouncementDownloader {
         } else {
             throw new RuntimeException("股票代码不支持");
         }
-        Map<String, Object> data = new HashMap<>();
+        Map<String, String> data = new HashMap<>();
         stockCode = stockCode + "," + searchOrgId(stockCode);
         data.put("stock", stockCode);
         data.put("tabName", "fulltext");
@@ -151,7 +151,7 @@ public class AnnouncementDownloader {
         data.put("plate", plate);
         data.put("category", "category_ndbg_szsh;category_bndbg_szsh;category_yjdbg_szsh;category_sjdbg_szsh;");
         data.put("isHLtitle", "true");
-        return HttpUtil.get(url,data);
+        return Ajax.getAccessToken(url,data);
     }
 
     /**
