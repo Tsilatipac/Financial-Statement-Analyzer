@@ -41,7 +41,7 @@ public class FunctionUnitTest {
 
     @Test
     public void testSearchOrgId() {
-        System.out.println(AnnouncementDownloader.searchOrgId("000651"));
+        System.out.println(AnnouncementDownloader.searchOrgId("601318"));
     }
 
     @Test
@@ -192,7 +192,7 @@ public class FunctionUnitTest {
 
     @Test
     public void testPDFParser(){
-        MyPDFReader reader = new MyPDFReader("docs/BILI Annual Report 2018.pdf");
+        MyPDFReader reader = new MyPDFReader("docs/BILIBILI Annual Report 2019.pdf");
         reader.pdfToTextfile("docs/bilibili.txt");
     }
 

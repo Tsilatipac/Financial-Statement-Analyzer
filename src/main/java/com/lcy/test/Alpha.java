@@ -18,7 +18,9 @@ public class Alpha {
 //        codes.add("600887");
 //        codes.add("002304");
 //        codes.add("603868");
-        codes.add("600276");
+        codes.add("601318");
+        codes.add("601601");
+        codes.add("601628");
         AnnouncementDownloader.downloadByStockCode(codes);
     }
 }

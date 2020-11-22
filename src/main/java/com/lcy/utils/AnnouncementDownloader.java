@@ -4,6 +4,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.lcy.pojo.Announcements;
 import com.lcy.pojo.JsonRootBean;
+import com.lcy.pojo.SearchOrgIdBean;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -151,7 +152,7 @@ public class AnnouncementDownloader {
         data.put("plate", plate);
         data.put("category", "category_ndbg_szsh;category_bndbg_szsh;category_yjdbg_szsh;category_sjdbg_szsh;");
         data.put("isHLtitle", "true");
-        return Ajax.getAccessToken(url,data);
+        return Ajax.getAccessToken(url, data);
     }
 
     /**
@@ -161,16 +162,13 @@ public class AnnouncementDownloader {
      * @return 查询到到组织id
      */
     public static String searchOrgId(String stockCode) {
-        String url = "http://www.cninfo.com.cn/new/fulltextSearch/full";
-        HashMap<String, Object> queryMap = new HashMap<>();
-        queryMap.put("searchkey", stockCode);
-        queryMap.put("isfulltext", "false");
-        queryMap.put("sortName", "pubdate");
-        queryMap.put("sortType", "desc");
-        queryMap.put("pageNum", "1");
-        String result = HttpUtil.get(url,queryMap);
-        String orgId = MyRegUtils.parseOne("\"secCode\":\"" + stockCode + "\".+?\"orgId\":\"[\\da-zA-z]+\"", result);
-        assert orgId != null;
+        String url = "http://www.cninfo.com.cn/new/information/topSearch/detailOfQuery";
+        HashMap<String, String> queryMap = new HashMap<>();
+        queryMap.put("keyWord", stockCode);
+        queryMap.put("maxSecNum", "10");
+        queryMap.put("maxListNum", "5");
+        String result = Ajax.getAccessToken(url, queryMap);
+        String orgId = JSONObject.parseObject(result, SearchOrgIdBean.class).getKeyBoardList().get(0).getOrgId();
         String[] split = orgId.split(":");
         return split[split.length - 1].replace("\"", "");
     }
